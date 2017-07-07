@@ -1,0 +1,57 @@
+- name: ensure horizon packages are installed 
+  apt: name={{ item }}  
+  with_items:
+    - openstack-dashboard
+    
+- name: ensure dashboard is configured
+  template: >
+    src=etc/openstack-dashboard/local_settings.py
+    dest=/etc/openstack-dashboard/local_settings.py
+    owner=root group=root mode=0644
+  notify: restart web services
+
+- name: ensure default horizon theme is used
+  lineinfile: 
+    path: /etc/openstack-dashboard/local_settings.py
+    regexp: '^DEFAULT_THEME'
+    line: "DEFAULT_THEME = 'default'"
+  notify: restart web services
+    
+# - name: ensure default virtualhost is disabled
+#   command: a2dissite {{ item }}
+#   with_items:
+#     - 000-default
+#     - default-ssl
+#     - openstack-dashboard-alias-only
+    
+#   notify: restart web services
+
+# - name: ensure openstack-dashboard-ssl virtualhost is enabled
+#   command: a2ensite {{ item }}
+#   with_items:
+#     - openstack-dashboard-ssl
+#     - openstack-dashboard-ssl-redirect
+    
+#   notify: restart web services
+  
+- name: ensure ssl, wsgi and rewrite modules are enabled
+  apache2_module: name={{ item }} state=present
+  with_items:
+    - wsgi
+    - ssl
+    - rewrite
+  notify: restart web services
+
+- name: ensure django secret key is deleted
+  file: >-
+    path=/var/lib/openstack-dashboard/secret-key/.secret_key_store
+    state=absent
+
+- name: ensure django secret key is access
+  file: >-
+    path=/var/lib/openstack-dashboard/secret_key
+    owner=www-data group=www-data
+  notify: restart web services
+
+
+    

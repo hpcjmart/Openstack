@@ -1,0 +1,15 @@
+- name: Ensure neutron-server is restarted
+  service: name=neutron-server state=restarted
+
+- name: Ensure nova services are restarted
+  service: name={{ item }} state=restarted
+  with_items:
+  - nova-api
+  - nova-consoleauth
+  - nova-scheduler
+  - nova-conductor
+  - nova-novncproxy
+- name: Ensure cinder services are restarted
+  service: name={{ item }} state=restarted
+  with_items:
+  - cinder-scheduler
